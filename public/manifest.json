@@ -1,7 +1,1 @@
-{
-  "short_name": "Base Wireframe",
-  "name": "Simple CRA wireframe for quick setup",
-  "icons": [],
-  "start_url": ".",
-  "display": "standalone"
-}
+{"short_name":"Base Wireframe","icons":[],"start_url":".","display":"standalone","name":"Game"}

@@ -1,0 +1,46 @@
+const { Game } = require('../models');
+
+module.exports = async ({ gameCode, name, points = 0, playerId, socket }) => {
+    try{
+        const game = await Game.findOne({ gameCode }).exec()
+
+        let player;
+
+        // If adding player to game
+        if(!game.players.find(({ playerId: gamePlayerId }) => playerId === gamePlayerId)){
+            player = {
+                playerId: Math.max(...game.players.map(({ playerId: id }) => id)) + 1,
+                name,
+                points,
+                active: true
+            }
+
+            game.players.push({ ...player, socket })
+
+            game.sockets.push(socket)
+        // If re-instating player via cookie
+        } else {
+            player = game.players.find(player => player.playerId === playerId)
+
+            player.active = true;
+            player.socket = socket;
+
+            if(!game.sockets.find((gameSocket) => gameSocket === socket)){
+                game.sockets.push(socket)
+            }
+        }
+
+        const { _doc: { players, ...rest } } = await game.save()
+
+        return {
+            success: true,
+            game: {
+                ...rest,
+                players: players.filter(({ active }) => active)
+            },
+            player
+        }
+    } catch(error){
+        return { success: false, error, deleteCookie: true };
+    }
+}
