@@ -6,8 +6,7 @@ import { Form } from 'react-final-form'
 import { Field, Button, Input } from '@components';
 
 const onSubmit = async (values) => {
-    console.log(values)
-    emit('join-game', values)
+    await emit('join-game', values)
 }
 
 export default () => (

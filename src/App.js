@@ -9,7 +9,7 @@ import { name } from '@config/constants'
 
 import { GameProvider } from '@contexts/GameContext'
 
-import cookie, { set as setCookie } from '@hooks/useCookie'
+import Cookies from 'universal-cookie'
 import useScreenSize from '@hooks/useScreenSize'
 
 import { socket, emit } from '@reducers/sockets'
@@ -20,48 +20,65 @@ import Landing from '@pages/Landing'
 import StartGame from '@pages/StartGame'
 import JoinGame from '@pages/JoinGame'
 import WaitingRoom from '@pages/WaitingRoom'
+import Game from '@pages/Game'
+
+const initialCookies = new Cookies()
+
+const setCookies = (newCookie) => {
+  initialCookies.set(`${name}`, JSON.stringify(newCookie), { path: '/' })
+}
+
+const removeCookies = () => {
+  initialCookies.remove(`${name}`, { path: '/' })
+}
 
 export default () => {
   const history = useHistory()
   const [screenSize] = useScreenSize();
   const [game, setGame] = useState(null)
   const [player, setPlayer] = useState(null)
+  const [cookie, setCookie] = useState(initialCookies.get(`${name}`))
 
   useEffect(() => {
     document.title = name
   }, [])
 
   useEffect(() => {
-    if(game === null && cookie !== null){
-      emit('join-game', cookie)
-    }
-  }, [game])
-
-  socket
-    .on('update-cookie', newCookie => {
-      if(cookie !== newCookie){
-        setCookie(newCookie)
+    socket.on('update-cookie', async (newCookie) => {
+      if(!newCookie){
+        setGame(null)
+        setCookie(null)
+        removeCookies()
+      } else if(cookie !== newCookie){
+        setCookies(newCookie)
 
         if(newCookie){
           const { name, playerId } = newCookie
           setPlayer({ name, playerId })
         }
       }
+    })
+  }, [])
 
-      if(!cookie){
-        setGame(null)
-        setPlayer(null)
+  useEffect(() => {
+    if(game === null && cookie && cookie !== null){
+      emit('join-game', cookie)
+    }
+  }, [game, cookie])
+
+  useEffect(() => {
+    socket.on('update-game', newGame => {
+      setGame(newGame)
+
+      if(newGame){
+        if(!newGame.active){
+          history.push('/waiting-room')
+        } else {
+          history.push('/game')
+        }
       }
     })
-    .on('update-game', newGame => {
-      if(game !== newGame){
-        setGame(newGame)
-      }
-
-      if(newGame && !newGame.active){
-        history.push('/waiting-room')
-      }
-    })
+  }, [])
 
   return (
     <>
@@ -114,6 +131,14 @@ export default () => {
                 path={"/waiting-room"}
                 render={() =>
                   <WaitingRoom />
+                }
+              />
+
+              <Route
+                exact
+                path={"/game"}
+                render={() =>
+                  <Game />
                 }
               />
             </div>

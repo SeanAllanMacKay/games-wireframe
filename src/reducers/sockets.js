@@ -3,19 +3,22 @@ import { name } from '@config/constants'
 
 export const socket = io(`/${name}`)
 
-export const emit = (event, data) => {
+export const emit = async (event, data) => {
     switch(event){
         case 'start-game':
             socket.emit('start-game', data)
             break;
         case 'join-game':
-            socket.emit('join-game', data)
+            await socket.emit('join-game', data)
             break;
         case 'leave-game':
-            socket.emit('leave-game', data)
+            await socket.emit('leave-game', data)
             break;
         case 'all-in':
             socket.emit('all-in', data)
+            break;
+        case 'change-turn':
+            socket.emit('change-turn', data)
             break;
         case 'disconnect':
             socket.emit('disconnect')

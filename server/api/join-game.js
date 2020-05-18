@@ -6,39 +6,55 @@ module.exports = async ({ gameCode, name, points = 0, playerId, socket }) => {
 
         let player;
 
-        // If adding player to game
-        if(!game.players.find(({ playerId: gamePlayerId }) => playerId === gamePlayerId)){
-            player = {
-                playerId: Math.max(...game.players.map(({ playerId: id }) => id)) + 1,
-                name,
-                points,
-                active: true
-            }
+        if(game){
+             // If adding player to game
+            if(!game.players.find(({ playerId: gamePlayerId }) => playerId === gamePlayerId)){
+                const newPlayerId = Math.max(...game.players.map(({ playerId: id }) => id)) + 1
 
-            game.players.push({ ...player, socket })
+                player = {
+                    playerId: newPlayerId,
+                    name,
+                    points,
+                    active: true
+                }
 
-            game.sockets.push(socket)
-        // If re-instating player via cookie
-        } else {
-            player = game.players.find(player => player.playerId === playerId)
+                game.players.push({ ...player, socket })
 
-            player.active = true;
-            player.socket = socket;
-
-            if(!game.sockets.find((gameSocket) => gameSocket === socket)){
                 game.sockets.push(socket)
+
+                if(game.turn === null){
+                    game.turn = newPlayerId
+                }
+            // If re-instating player via cookie
+            } else {
+                player = game.players.find(player => player.playerId === playerId)
+
+                player.active = true;
+                player.socket = socket;
+
+                if(!game.sockets.find((gameSocket) => gameSocket === socket)){
+                    game.sockets.push(socket)
+                }
+
+                if(game.turn === null){
+                    game.turn = playerId
+                }
+
+                player = player._doc
             }
-        }
 
-        const { _doc: { players, ...rest } } = await game.save()
+            const { _doc: { players, ...rest } } = await game.save()
 
-        return {
-            success: true,
-            game: {
-                ...rest,
-                players: players.filter(({ active }) => active)
-            },
-            player
+            return {
+                success: true,
+                game: {
+                    ...rest,
+                    players: players.filter(({ active }) => active)
+                },
+                player
+            }
+        } else {
+            return { success: false, error: "Game not found" };
         }
     } catch(error){
         return { success: false, error, deleteCookie: true };

@@ -8,6 +8,8 @@ const app = express();
 const http = require("http").Server(app);
 const bodyParser = require("body-parser");
 
+const routes = require('./routes')
+
 app.use(bodyParser.json());
 app.use(express.json());
 
@@ -33,10 +35,10 @@ db
     });
   })
 
-app.use(express.static(path.join(__dirname, "build")));
+app.use(express.static(path.join(__dirname, "../build")));
 
-app.get("/", function(req, res) {
-  res.sendFile(path.join(__dirname, "build", "index.html"));
+app.get(routes, function(req, res) {
+  res.sendFile(path.join(__dirname, "../build", "index.html"));
 });
 
 const game = require('./sockets')(http)

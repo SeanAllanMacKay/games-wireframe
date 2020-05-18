@@ -1,27 +1,50 @@
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
+import { useLocation } from 'react-router-dom'
 
 import { primaryColor } from '@config/colors'
 import { name } from '@config/constants'
 
-export default () => (
-    <div
-        style={{
-            display: 'flex',
-            flexDirection: 'row',
-            backgroundColor: primaryColor,
-            padding: '5px 30px',
-            height: '55px',
-            width: '100vw'
-        }}
-    >
-        <h1
+import GameContext from '@contexts/GameContext'
+
+export default () => {
+    const location = useLocation()
+    const { game } = useContext(GameContext)
+    const { gameCode } = game || {}
+
+    return(
+        <div
             style={{
-                color: 'white',
-                margin: 0,
-                textTransform: 'uppercase'
+                display: 'flex',
+                flexDirection: 'row',
+                backgroundColor: primaryColor,
+                padding: '5px 30px',
+                height: '55px',
+                width: '100vw',
+                justifyContent: 'space-between',
+                alignItems: 'center'
             }}
         >
-            {name}
-        </h1>
-    </div>
-);
+            <h1
+                style={{
+                    color: 'white',
+                    margin: 0,
+                    textTransform: 'uppercase'
+                }}
+            >
+                {name}
+            </h1>
+
+            {
+                gameCode && location?.pathname === '/game' &&
+                    <p
+                        style={{
+                            color: 'white',
+                            margin: 0
+                        }}
+                    >
+                        {gameCode}
+                    </p>
+            }
+        </div>
+    )
+};

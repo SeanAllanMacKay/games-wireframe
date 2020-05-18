@@ -32,7 +32,7 @@ module.exports = async (newGameValues) => {
     try {
         const newGame = new Game(game)
         const response = await newGame.save()
-        return { success: true, game: response, player }
+        return { success: true, game: response, player, gameCode }
     } catch(error){
         return { success: false, error };
     }
